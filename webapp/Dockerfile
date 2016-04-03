@@ -4,6 +4,8 @@ MAINTAINER David Cassany <davidcassany@gmail.com>
 #Install Ruby
 RUN zypper refresh && \ 
     zypper  --non-interactive install ruby ruby2.1-rubygem-bundler
+RUN zypper --non-interactive install ruby-devel
+RUN zypper --non-interactive install make gcc
     
 # Install gems
 ENV APP_HOME /app
