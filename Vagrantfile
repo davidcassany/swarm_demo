@@ -71,7 +71,7 @@ Vagrant.configure(2) do |config|
 
   # Introduced by myself
   config.vm.provider "docker" do |d|
-    d.build_dir = "./webapp/"
+    d.build_dir = "./dataBase/"
     d.remains_running = false
     d.ports = [ "3000:3000" ]
   end

@@ -1,6 +1,10 @@
-FROM ruby:2.2.1
+FROM opensuse
 MAINTAINER David Cassany <davidcassany@gmail.com>
 
+#Install Ruby
+RUN zypper refresh && \ 
+    zypper  --non-interactive install ruby ruby2.1-rubygem-bundler
+    
 # Install gems
 ENV APP_HOME /app
 ENV HOME /root
