@@ -26,7 +26,7 @@ module CHALLENGE
      
       # Insert new comment
       if params[:text] and params[:author]
-        client[:comments].insert_one({"text" => params[:text], "author" => params[:author]})end
+        client[:comments].insert_one({"text" => params[:text], "author" => params[:author]})
       end
 
       # Render all available comments
@@ -36,4 +36,3 @@ module CHALLENGE
     end
   end
 end
-

@@ -13,7 +13,7 @@ COPY Gemfile $APP_HOME/
 RUN bundle install
 
 # Upload source
-COPY run.sh db.rb app.rb config.ru $APP_HOME/
+COPY run.sh app.rb config.ru $APP_HOME/
 COPY views/* $APP_HOME/views/
 
 # Start server
