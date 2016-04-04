@@ -70,20 +70,24 @@ Vagrant.configure(2) do |config|
   # SHELL
 
   # Introduced by myself
+  config.vm.define "db" do |b|
+    b.vm.provider "docker" do |d|
+      d.build_dir = "./dataBase/"
+      d.name = "db"
+      d.remains_running = true
+      #d.ports = [ "27017:27017" ]
+    end
+  end
+
   config.vm.define "webapp" do |a|
     a.vm.provider "docker" do |d|
       d.build_dir = "./webapp/"
+      d.name = "webapp"
       d.remains_running = true
+      d.link("db:mongodbd")
       d.ports = [ "3000:3000" ]
     end
   end
 
-  config.vm.define "db" do |b|
-    b.vm.provider "docker" do |d|
-      d.build_dir = "./dataBase/"
-      d.remains_running = true
-      d.ports = [ "27017:27017" ]
-    end
-  end
-
 end
+

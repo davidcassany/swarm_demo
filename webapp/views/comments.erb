@@ -1,0 +1,12 @@
+<p><a href="/">Back home</a></p>
+<p>Current comments: </p>
+
+<% comments.each do |comment| %>
+
+  <p>Author: <%= comment[:author] %>
+  <div style="border:1px dotted black">
+    <%= comment[:text] %>
+  </div></p>
+  <hr>
+
+<% end %>
