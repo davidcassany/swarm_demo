@@ -15,7 +15,7 @@ $ vagrant up db
 $ vagrant up webapp
 ```
 
-It might take quite long as the base VM of opensuse might be donwloaded during the process and because once the machie is provided it start provision docker and building images inside it (only the first boot). So it will take a while.
+It might take quite long as the base VM of OpenSuse might be donwloaded during the process and because once the machie is provided it starts provision docker and building images inside it (only the first boot). So it will take a while.
 
 Once done you have a cluster set and running. Test it from your host docker installation by running the following commands:
 
