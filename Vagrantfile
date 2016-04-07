@@ -74,7 +74,6 @@ Vagrant.configure(2) do |config|
   node0_ip = "192.168.56.200"
   node1_ip = "192.168.56.201"
   
-
   config.vm.define "node1" do |node1|
     node1.vm.box = "alienscience/openSUSE-Leap-42.1"
     node1.vm.hostname = 'node1'
@@ -82,7 +81,7 @@ Vagrant.configure(2) do |config|
     node1.vm.network :private_network, ip: node1_ip
     node1.vm.communicator = "ssh"
 
-    # unfortunately docker provisioner is not supported on suse
+    # unfortunately docker provisioner is not supported on suse guests
 =begin
     node1.vm.provision "shell", inline: 'echo \'DOCKER_OPTS=\"-H tcp://0.0.0.0:2375\"\' > /etc/sysconfig/docker'
     node1.vm.provision "docker" do |d|
@@ -112,8 +111,8 @@ Vagrant.configure(2) do |config|
     node0.vm.network :private_network, ip: node0_ip
     node0.vm.communicator = "ssh"
 
-    node0.vm.provision :shell, path: "swarm_agent.sh", :args => "#{node0_ip} #{swarm_token}"
-    #node0.vm.provision :shell, inline: "docker run --restart unless-stopped -d -p 23755:2375 swarm manage token://#{swarm_token}"
+    # setting it as a master...
+    node0.vm.provision :shell, path: "swarm_agent.sh", :args => "#{node0_ip} #{swarm_token} master"
 
     node0.vm.provider :virtualbox do |v|
       v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
@@ -122,6 +121,10 @@ Vagrant.configure(2) do |config|
     end
   end
 
+# This would be nice, but I couldn't make it work, would be nice to have a -H option 
+# in docker provider, so I would not need ENV vars. 
+# I wanted to use the host as the swarm manager, not inside a VM
+=begin
   config.vm.define "manager" do |a|
     ENV['DOCKER_HOST'] = ""
     a.vm.provider "docker" do |d|
@@ -129,27 +132,32 @@ Vagrant.configure(2) do |config|
       d.name = "swarm-manager"
       d.cmd = ["swarm", "manage token://#{swarm_token}"]
       d.ports = ["23755:2375"]
+    end
+  end
+=end
+
+  # Would be nice to set this env var per machine, this could be an option of the provider
+  ENV['DOCKER_HOST'] = "tcp://#{node0_ip}:23755"
+
+  config.vm.define "db" do |b|
+    b.vm.provider "docker" do |d|
+      d.build_dir = "dataBase"
+      d.build_args = ["-t", "david/db"]
+      d.name = "db"
       d.remains_running = true
+      d.create_args = ["-e", "affinity:image==david/db"]
     end
   end
 
-  config.vm.define "db" do |b|
-    ENV['DOCKER_HOST'] = "tcp://localhost:23755"
-    b.vm.provider "docker" do |d|
-      d.image = "david/db"
-      d.name = "db"
-      d.remains_running = true
-    end
-  end
- 
   config.vm.define "webapp" do |a|
-    ENV['DOCKER_HOST'] = "tcp://localhost:23755"
     a.vm.provider "docker" do |d|
-      d.image = "david/webapp"
+      d.build_dir = "webapp"
+      d.build_args = ["-t", "david/webapp"]
       d.name = "webapp"
       d.remains_running = true
       d.link("db:mongodbd")
       d.ports = [ "3000:3000" ]
+      d.create_args = ["-e", "affinity:image==david/webapp"]
     end
   end
 

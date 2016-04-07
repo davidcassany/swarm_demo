@@ -26,5 +26,10 @@ for i in 0 1 2 3 4 5 6 7 8 9 ; do
 
 done
 
+if [ "$3" == "master" ] ; then
+  echo "Starting the master swarm agent..." 1>&2
+  sudo docker run --restart unless-stopped -d -p 23755:2375 swarm manage token://$TOKEN || exit 1
+fi
+
 exit 0
 
