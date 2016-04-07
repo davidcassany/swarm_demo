@@ -28,6 +28,6 @@ $ docker -H tcp://192.168.56.200:23755 ps
 ```
 To list the current containers running in the cluster, which should be the *db* and *webapp* containers. 
 
-Finally check the webapp is running by pointing the browser to *http://\<node_IP_running_webapp\>:3000*, where *\<node_IP_running_webapp\>* will be node0 IP (192.168.56.200) or node1 IP (192.168.56.201). Use *docker ps* to the swarm manager to verify in which node is currently running the webapp.
+Finally check the webapp is running by pointing the browser to *http://\<node_IP_running_webapp\>:3000*, where *\<node_IP_running_webapp\>* will be node0 IP (192.168.56.200) or node1 IP (192.168.56.201). Use *docker ps* command over the swarm manager to verify in which node is currently running the webapp.
 
 
