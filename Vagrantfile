@@ -61,7 +61,7 @@ Vagrant.configure(2) do |config|
   #   push.app = "YOUR_ATLAS_USERNAME/YOUR_APPLICATION_NAME"
   # end
 
-  # Enable provisioning with a shell script. Additional provisioners such as
+  ## Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
   # config.vm.provision "shell", inline: <<-SHELL
@@ -70,18 +70,82 @@ Vagrant.configure(2) do |config|
   # SHELL
 
   # Introduced by myself
-  config.vm.define "db" do |b|
-    b.vm.provider "docker" do |d|
-      d.build_dir = "./dataBase/"
-      d.name = "db"
-      d.remains_running = true
-      #d.ports = [ "27017:27017" ]
+  swarm_token = "deadbeefdeadbeefdeadbeefdeadbeef"
+  node0_ip = "192.168.56.200"
+  node1_ip = "192.168.56.201"
+  
+
+  config.vm.define "node1" do |node1|
+    node1.vm.box = "alienscience/openSUSE-Leap-42.1"
+    node1.vm.hostname = 'node1'
+    node1.vm.box_url = "alienscience/openSUSE-Leap-42.1"
+    node1.vm.network :private_network, ip: node1_ip
+    node1.vm.communicator = "ssh"
+
+    # unfortunately docker provisioner is not supported on suse
+=begin
+    node1.vm.provision "shell", inline: 'echo \'DOCKER_OPTS=\"-H tcp://0.0.0.0:2375\"\' > /etc/sysconfig/docker'
+    node1.vm.provision "docker" do |d|
+      d.build_image "/vagrant/dataBase", args: "-t david/db"
+      d.build_image "/vagrant/webapp", args: "-t david/webapp"
+      d.run "swarm" ,
+        cmd: "join --addr=#{node1_ip}:2375 token://#{swarm_token}",
+        restart: "unless-stopped",
+        args: "-d"
+    end
+=end
+
+    # Manually added docker, builds and swarm agent
+    node1.vm.provision :shell, path: "swarm_agent.sh", :args => "#{node1_ip} #{swarm_token}"
+
+    node1.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--name", "node1"]
     end
   end
 
-  config.vm.define "webapp" do |a|
+  config.vm.define "node0" do |node0|
+    node0.vm.box = "alienscience/openSUSE-Leap-42.1"
+    node0.vm.hostname = 'node0'
+    node0.vm.box_url = "alienscience/openSUSE-Leap-42.1"
+    node0.vm.network :private_network, ip: node0_ip
+    node0.vm.communicator = "ssh"
+
+    node0.vm.provision :shell, path: "swarm_agent.sh", :args => "#{node0_ip} #{swarm_token}"
+    #node0.vm.provision :shell, inline: "docker run --restart unless-stopped -d -p 23755:2375 swarm manage token://#{swarm_token}"
+
+    node0.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--name", "node0"]
+    end
+  end
+
+  config.vm.define "manager" do |a|
+    ENV['DOCKER_HOST'] = ""
     a.vm.provider "docker" do |d|
-      d.build_dir = "./webapp/"
+      d.image = "swarm"
+      d.name = "swarm-manager"
+      d.cmd = ["swarm", "manage token://#{swarm_token}"]
+      d.ports = ["23755:2375"]
+      d.remains_running = true
+    end
+  end
+
+  config.vm.define "db" do |b|
+    ENV['DOCKER_HOST'] = "tcp://localhost:23755"
+    b.vm.provider "docker" do |d|
+      d.image = "david/db"
+      d.name = "db"
+      d.remains_running = true
+    end
+  end
+ 
+  config.vm.define "webapp" do |a|
+    ENV['DOCKER_HOST'] = "tcp://localhost:23755"
+    a.vm.provider "docker" do |d|
+      d.image = "david/webapp"
       d.name = "webapp"
       d.remains_running = true
       d.link("db:mongodbd")
