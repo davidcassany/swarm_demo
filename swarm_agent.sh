@@ -11,6 +11,7 @@ fi
 sed -i "s|\(DOCKER_OPTS=\).*|\1\"-H tcp://0.0.0.0:2375\"|" /etc/sysconfig/docker
 
 sudo systemctl restart docker || exit 1
+sudo systemctl enable docker || exit 1
 
 for i in 0 1 2 3 4 5 6 7 8 9 ; do
 
