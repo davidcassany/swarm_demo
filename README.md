@@ -2,7 +2,7 @@
 
 This is a simple demo of a Swarm cluster running in a vagrant environment with to OpenSuse VMs containing a swarm agent. It assumes there is docker client installed in the host machine.
 
-This demo deploys a dummy web application over a swarm cluster. The webapp requires a db which is set up and running over a dedicated container, so the cluster, once deployed, will contain two docker containers (node0 and node1) out of the box. 
+This demo deploys a dummy web application over a swarm cluster. The webapp requires a db which is set up and running over a dedicated container, so the cluster, once deployed, will contain two docker containers (db and webapp) out of the box. 
 
 # Deployment
 
